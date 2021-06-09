@@ -24,11 +24,7 @@ const PubSub = (() => {
 		}
 	}
 
-	return {
-		on,
-		off,
-		emit
-	};
+	return { on, off, emit };
 })();
 
 const GameBoard = (() => {
@@ -41,10 +37,37 @@ const GameBoard = (() => {
 	const getBoard = () => board;
 	const updateBoard = (row, col, value) => {
 		board[row][col] = value;
+		PubSub.emit('updateBoard', {row, col, value});
 	};
 
-	return {
-		getBoard,
-		updateBoard
-	};
+	return { getBoard, updateBoard };
+})();
+
+const Player = function(sign) {
+	let _sign = sign || '';
+	let _turn = false;
+
+	function setSign(sign) {
+		_sign = sign;
+	}
+
+	function getSign() {
+		return _sign;
+	}
+
+	function toggleTurn() {
+		_turn = _turn === true ? false : true;
+		return _turn;
+	}
+
+	function hasTurn() {
+		return _turn;
+	}
+
+	return { setSign, getSign, toggleTurn, hasTurn };
+};
+
+const Game = (function(){
+	let firstPlayer = Player('X');
+
 })();
