@@ -29,7 +29,7 @@ const PubSub = (() => {
 
 const GameBoard = (() => {
 	let board = [
-		[0, 0, 0], 
+		[5, 0, 0], 
 		[0, 0, 0], 
 		[0, 0, 0]
 	];
@@ -46,6 +46,7 @@ const GameBoard = (() => {
 const Player = function(sign) {
 	let _sign = sign || '';
 	let _turn = false;
+	let _name = '';
 
 	function setSign(sign) {
 		_sign = sign;
@@ -54,6 +55,15 @@ const Player = function(sign) {
 	function getSign() {
 		return _sign;
 	}
+
+	function setName(name) {
+		_name = name;
+	}
+
+	function getName() {
+		return _name;
+	}
+
 
 	function toggleTurn() {
 		_turn = _turn === true ? false : true;
@@ -64,10 +74,42 @@ const Player = function(sign) {
 		return _turn;
 	}
 
-	return { setSign, getSign, toggleTurn, hasTurn };
+	return { setSign, getSign, setName, getName, toggleTurn, hasTurn };
 };
 
 const Game = (function(){
 	let firstPlayer = Player('X');
+	let secondPlayer = Player('O');
+
+	if(!firstPlayer.hasTurn()) firstPlayer.toggleTurn();
+
 
 })();
+
+const Display = (() => {
+	let $grid = document.getElementById('grid');
+
+	function createGrid(size, board) {
+		for (let i = 0; i < size * size; i++) {
+			let col = i % size;
+			let row = Math.floor(i / 3);
+			let $cell = document.createElement('div');
+			$cell.textContent = board[row][col];
+			$cell.className = 'cell';
+			addEvent($cell);
+			$grid.appendChild($cell);
+		}
+	}
+
+	function addEvent($cell) {
+		$cell.addEventListener('click', clickEvent);
+	}
+
+	function clickEvent(event) {
+		event.target.className = 'cell clicked-cell';
+	}
+
+	return { createGrid };
+})();
+
+Display.createGrid(3, GameBoard.getBoard());
