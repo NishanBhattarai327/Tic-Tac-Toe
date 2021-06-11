@@ -1,7 +1,7 @@
-const PubSub = (() => {
+const Signal = (() => {
 	let events = {};
 
-	function on(eventName, callback) {
+	function subscribe(eventName, callback) {
 		if(!events.hasOwnProperty(eventName)){
 			events[eventName] = [];
 			events[eventName].push(callback);
@@ -11,7 +11,7 @@ const PubSub = (() => {
 		}
 	}
 
-	function off(eventName, callback) {
+	function unsubscribe(eventName, callback) {
 		let index = events[eventName].indexOf(callback);
 		events[eventName].splice(index, 1);
 	}
@@ -24,7 +24,7 @@ const PubSub = (() => {
 		}
 	}
 
-	return { on, off, emit };
+	return { subscribe, unsubscribe, emit };
 })();
 
 const GameBoard = (() => {
@@ -34,13 +34,28 @@ const GameBoard = (() => {
 		[0, 0, 0]
 	];
 
+	Signal.subscribe('board-created', createBoard);
+
+	function createBoard(size) {
+		board = [];
+		for (let i = 0; i < size; i++) {
+			board.push([]);
+			for (let j = 0; j < size; j++) {
+				board[i].push(0);
+			}
+		}
+		return board;
+	}
+
 	const getBoard = () => board;
 	const updateBoard = (row, col, value) => {
-		board[row][col] = value;
-		PubSub.emit('updateBoard', {row, col, value});
+		if(row === board.length && col === board[0].length) {
+			board[row][col] = value;
+			Signal.emit('updateBoard', {row, col, value});
+		}
 	};
 
-	return { getBoard, updateBoard };
+	return { getBoard, updateBoard, createBoard };
 })();
 
 const Player = function(sign) {
@@ -87,7 +102,9 @@ const Game = (function(){
 })();
 
 const Display = (() => {
-	let $grid = document.getElementById('grid');
+	let $grid = document.createElement('grid');
+	$grid.className = 'grid';
+	let bool_grid_added = false;
 
 	function createGrid(size, board) {
 		for (let i = 0; i < size * size; i++) {
@@ -99,6 +116,8 @@ const Display = (() => {
 			addEvent($cell);
 			$grid.appendChild($cell);
 		}
+
+		Signal.emit('board-created', size);
 	}
 
 	function addEvent($cell) {
@@ -107,9 +126,18 @@ const Display = (() => {
 
 	function clickEvent(event) {
 		event.target.className = 'cell clicked-cell';
+		Signal.emit('cell-clicked', event.target);
 	}
 
-	return { createGrid };
+	function render() {
+		if(!bool_grid_added) {
+			document.getElementById('screen').appendChild($grid);
+			bool_grid_added = !bool_grid_added;
+		}
+	}
+
+	return { createGrid, render };
 })();
 
 Display.createGrid(3, GameBoard.getBoard());
+Display.render();

@@ -1,3 +1,13 @@
+.screen {
+	text-align: cneter;
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(3, 140px);
+	margin: auto;
+}
+
 .cell {
 	width:  100px;
 	height:  100px;
@@ -5,12 +15,6 @@
 	display: inline-block;
 	margin: 20px;
 }
-
-.grid {
-	display: grid;
-	grid-template-columns: repeat(3, 140px);
-}
-
 .clicked-cell {
 	background: green;
 }
