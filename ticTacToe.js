@@ -29,12 +29,12 @@ const Signal = (() => {
 
 const GameBoard = (() => {
 	let board = [
-		[5, 0, 0], 
+		[0, 0, 0], 
 		[0, 0, 0], 
 		[0, 0, 0]
 	];
 
-	Signal.subscribe('board-created', createBoard);
+	Signal.subscribe('create-board', createBoard);
 
 	function createBoard(size) {
 		board = [];
@@ -44,7 +44,8 @@ const GameBoard = (() => {
 				board[i].push(0);
 			}
 		}
-		return board;
+
+		Signal.emit('display-board', board);
 	}
 
 	const getBoard = () => board;
@@ -55,7 +56,7 @@ const GameBoard = (() => {
 		}
 	};
 
-	return { getBoard, updateBoard, createBoard };
+	return { getBoard, updateBoard};
 })();
 
 const Player = function(sign) {
@@ -106,18 +107,20 @@ const Display = (() => {
 	$grid.className = 'grid';
 	let bool_grid_added = false;
 
-	function createGrid(size, board) {
-		for (let i = 0; i < size * size; i++) {
-			let col = i % size;
-			let row = Math.floor(i / 3);
-			let $cell = document.createElement('div');
-			$cell.textContent = board[row][col];
-			$cell.className = 'cell';
-			addEvent($cell);
-			$grid.appendChild($cell);
-		}
+	Signal.subscribe('display-board', createGrid);
 
-		Signal.emit('board-created', size);
+	function createGrid(board) {
+		let row = board.length;
+		let col = board[0].length;
+		for (let i = 0; i < row; i++) {
+			for (let j = 0; j < col; j++) {
+				let $cell = document.createElement('div');
+				$cell.textContent = board[i][j];
+				$cell.className = 'cell';
+				addEvent($cell);
+				$grid.appendChild($cell);
+			}
+		}
 	}
 
 	function addEvent($cell) {
@@ -131,6 +134,8 @@ const Display = (() => {
 
 	function render() {
 		if(!bool_grid_added) {
+			let size = 3;
+			Signal.emit('create-board', size);
 			document.getElementById('screen').appendChild($grid);
 			bool_grid_added = !bool_grid_added;
 		}
@@ -139,5 +144,5 @@ const Display = (() => {
 	return { createGrid, render };
 })();
 
-Display.createGrid(3, GameBoard.getBoard());
+
 Display.render();
