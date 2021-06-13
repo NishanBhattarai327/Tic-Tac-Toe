@@ -29,34 +29,65 @@ const Signal = (() => {
 
 const GameBoard = (() => {
 	let board = [
-		[0, 0, 0], 
-		[0, 0, 0], 
-		[0, 0, 0]
+		'', '', '', 
+		'', '', '', 
+		'', '', ''
 	];
 
 	Signal.subscribe('create-board', createBoard);
+	Signal.subscribe('update-board', updateBoard);
+	Signal.subscribe('check-for-win', checkForWin);
 
 	function createBoard(size) {
 		board = [];
-		for (let i = 0; i < size; i++) {
-			board.push([]);
-			for (let j = 0; j < size; j++) {
-				board[i].push(0);
-			}
+		for (let i = 0; i < size*size; i++) {
+			board.push('');
 		}
 
 		Signal.emit('display-board', board);
 	}
 
-	const getBoard = () => board;
-	const updateBoard = (row, col, value) => {
-		if(row === board.length && col === board[0].length) {
-			board[row][col] = value;
-			Signal.emit('updateBoard', {row, col, value});
-		}
-	};
+	function getBoard() {
+		return board;
+	}
 
-	return { getBoard, updateBoard};
+	function updateBoard(cell) {
+		let index = Number(cell.index), value = cell.value;
+
+		if(index <= board.length) {
+			board[index] = value;
+		}
+	}
+
+	function checkForWin(sign) {
+		const wining_index_arr = [
+			[0, 1, 2], [3, 4, 5], [6, 7, 8],
+			[0, 3, 6], [1, 4, 7], [2, 5, 8],
+			[0, 4, 8], [2, 4, 6]
+		];
+		let won = false;
+
+		let sign_indexs = board.reduce((acc, value, index) => {
+			if (value === sign)
+				acc.push(index);
+			return acc;
+		}, []);
+
+		if (sign_indexs.length >= 3) {
+			wining_index_arr.some((arr) => {
+				won = arr.every((value) => {
+					acc = sign_indexs.indexOf(value) !== -1;
+					return acc;
+				});
+				return won;
+			});
+		}
+
+		Signal.emit('win-status', {won, sign});
+		return won;
+	}
+
+	return { getBoard, updateBoard, checkForWin };
 })();
 
 const Player = function(sign) {
@@ -96,9 +127,37 @@ const Player = function(sign) {
 const Game = (function(){
 	let firstPlayer = Player('X');
 	let secondPlayer = Player('O');
+	Signal.subscribe('cell-clicked', play);
+	Signal.subscribe('win-status', gameOver);
 
 	if(!firstPlayer.hasTurn()) firstPlayer.toggleTurn();
 
+	function play(clickedCell) {
+		let sign;
+		let index = Number(clickedCell.cell.dataset.index);
+
+		if (firstPlayer.hasTurn()) {
+			sign = firstPlayer.getSign();
+			firstPlayer.toggleTurn();
+			secondPlayer.toggleTurn();
+		}
+		else if (secondPlayer.hasTurn()) {
+			sign = secondPlayer.getSign();
+			secondPlayer.toggleTurn();
+			firstPlayer.toggleTurn();
+		}
+		Signal.emit('display-cell-clicked', { cell:clickedCell.cell, sign });
+		Signal.emit('update-board', { index, value:sign });
+		Signal.emit('check-for-win', sign);
+
+	}
+
+	function gameOver(player) {
+		if(player.won) {
+			console.log(player.sign + ' won the game');
+			Signal.emit('display-won-status', { status: 'won', sign: player.sign });
+		}
+	}
 
 })();
 
@@ -107,29 +166,65 @@ const Display = (() => {
 	$grid.className = 'grid';
 	let bool_grid_added = false;
 
-	Signal.subscribe('display-board', createGrid);
+	Signal.subscribe('display-board', _createGrid);
+	Signal.subscribe('display-cell-clicked', _updateCell);
+	Signal.subscribe('display-won-status', _endTheGame)
 
-	function createGrid(board) {
-		let row = board.length;
-		let col = board[0].length;
-		for (let i = 0; i < row; i++) {
-			for (let j = 0; j < col; j++) {
-				let $cell = document.createElement('div');
-				$cell.textContent = board[i][j];
-				$cell.className = 'cell';
-				addEvent($cell);
-				$grid.appendChild($cell);
-			}
+	function _createGrid(board) {
+		let size = board.length;
+		for (let i = 0; i < size; i++) {
+			let $cell = document.createElement('div');
+			$cell.textContent = board[i];
+			$cell.className = 'cell';
+			$cell.setAttribute('data-index', i);
+			_addEvent($cell, _clickEvent);
+			$grid.appendChild($cell);
 		}
 	}
 
-	function addEvent($cell) {
-		$cell.addEventListener('click', clickEvent);
+	function _addEvent($cell, callback) {
+		$cell.addEventListener('click', callback);
 	}
 
-	function clickEvent(event) {
+	function _clickEvent(event) {
+		let index = Number(event.target.dataset.index);
+		let cell = event.target;
+
 		event.target.className = 'cell clicked-cell';
-		Signal.emit('cell-clicked', event.target);
+		Signal.emit('cell-clicked', {index, cell});
+	}
+
+	function _updateCell(player) {
+		player.cell.textContent = player.sign;
+		player.cell.removeEventListener('click', _clickEvent);
+	}	
+
+	function _endTheGame(msg) {
+		if(msg.status === 'won') {
+			document.querySelectorAll('.cell').forEach((cell) => {
+				cell.removeEventListener('click', _clickEvent);
+			});
+			showResetButton();
+		}
+	}
+
+	function showResetButton() {
+		let $btnReset = document.getElementById('reset-btn');
+		$btnReset.style.display = 'block';
+		$btnReset.addEventListener('click', resetTheGame);
+	}
+
+	function resetTheGame(event) {
+		removeAllChild($grid);
+		bool_grid_added = false;
+		render();
+		event.target.style.display = 'none';
+	}
+
+	function removeAllChild(parent) {
+		while (parent.firstChild) {
+			parent.removeChild(parent.firstChild);
+		}
 	}
 
 	function render() {
@@ -141,8 +236,7 @@ const Display = (() => {
 		}
 	}
 
-	return { createGrid, render };
+	return { render };
 })();
-
 
 Display.render();

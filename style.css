@@ -9,12 +9,18 @@
 }
 
 .cell {
+	box-sizing: border-box;
 	width:  100px;
 	height:  100px;
 	background: red;
 	display: inline-block;
 	margin: 20px;
+	text-align: center;
+	padding-top: 40px;
 }
 .clicked-cell {
 	background: green;
+}
+.reset-btn {
+	display: none;
 }
