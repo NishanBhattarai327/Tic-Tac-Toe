@@ -168,8 +168,10 @@ const Game = (function(){
 })();
 
 const Display = (() => {
-	let $grid = document.createElement('grid');
-	$grid.className = 'grid';
+	let $grid = document.querySelector('#grid');
+	let $btnReset = document.getElementById('reset-btn');
+	$btnReset.addEventListener('click', resetTheGame);
+
 	let bool_grid_added = false;
 
 	Signal.subscribe('display-board', _createGrid);
@@ -179,18 +181,29 @@ const Display = (() => {
 	/*Making message-popup window*/
 	let $popUp = document.querySelector("#pop-up");
 	let $popUp_closeBtn = document.querySelector(".pop-up-content-close");
+	let $popUp_resetBtn = document.querySelector('#pop-up-reset-btn');
 
 	// When the user clicks on <span> (x), close the $popUp
 	$popUp_closeBtn.onclick = function() {
-	  $popUp.style.display = "none";
-	  resetTheGame();
+		hidePopUp();
 	}
 	// When the user clicks anywhere outside of the $popUp, close it
 	window.onclick = function(event) {
 	  if (event.target == $popUp) {
-	    $popUp.style.display = "none";
-	    resetTheGame();
+	    hidePopUp();
 	  }
+	}
+	$popUp_resetBtn.onclick = function() {
+		hidePopUp();
+		resetTheGame();
+	}
+
+	function hidePopUp() {
+		$popUp.style.display = "none";
+	}
+
+	function showPopUp() {
+		$popUp.style.display = 'block';
 	}
 
 	function _createGrid(board) {
@@ -225,12 +238,10 @@ const Display = (() => {
 	function _endTheGame(msg) {
 		if (msg.status !== '') {
 			let $msg = document.querySelector('.message');
-
-			$popUp.style.display = "block";
+			showPopUp();
 			document.querySelectorAll('.cell').forEach((cell) => {
 				cell.removeEventListener('click', _clickEvent);
 			});
-			showResetButton();
 
 			if(msg.status === 'win') {
 				showWiningMessage($msg, msg);
@@ -242,12 +253,6 @@ const Display = (() => {
 
 	}
 
-	function showResetButton() {
-		let $btnReset = document.getElementById('reset-btn');
-		$btnReset.style.display = 'block';
-		$btnReset.addEventListener('click', resetTheGame);
-	}
-
 	function showWiningMessage(dom, msg) {
 		dom.innerHTML = `GAME IS WON By <br> <strong>${msg.sign}</strong>`;
 	}
@@ -256,12 +261,10 @@ const Display = (() => {
 		dom.innerHTML = 'NO ONE IS WINNER';
 	}	
 
-	function resetTheGame($resetBtn = undefined) {
+	function resetTheGame() {
 		removeAllChild($grid);
 		bool_grid_added = false;
 		render();
-		if ($resetBtn !== undefined)
-			$resetBtn.style.display = 'none';
 	}
 
 	function removeAllChild(parent) {
@@ -274,7 +277,6 @@ const Display = (() => {
 		if(!bool_grid_added) {
 			let size = 3;
 			Signal.emit('create-board', size);
-			document.getElementById('screen').appendChild($grid);
 			bool_grid_added = !bool_grid_added;
 		}
 	}

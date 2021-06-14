@@ -23,9 +23,6 @@
 .clicked-cell {
 	background: green;
 }
-.reset-btn {
-	display: none;
-}
 
 /* Pop up window......................................*/
 .pop-up-window {
