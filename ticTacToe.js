@@ -78,12 +78,17 @@ const GameBoard = (() => {
 
 
 		let won = false;
+		let winingCells;
 		if (sign_indexs.length >= 3) {
 			wining_index_arr.some((arr) => {
 				won = arr.every((value) => {
 					acc = sign_indexs.indexOf(value) !== -1;
 					return acc;
 				});
+
+				if (won) {
+					winningCells = [...arr];
+				}
 				return won;
 			});
 		}
@@ -97,7 +102,7 @@ const GameBoard = (() => {
 		}
 
 
-		Signal.emit('display-game-ended-status', { sign, status });
+		Signal.emit('display-game-ended-status', { sign, status, winningCells });
 		return won;
 	}
 
@@ -178,7 +183,7 @@ const Display = (() => {
 	Signal.subscribe('display-cell-clicked', _updateCell);
 	Signal.subscribe('display-game-ended-status', _endTheGame);
 
-	/*Making message-popup window*/
+	/*Making message-pop-up window*****************/
 	let $popUp = document.querySelector("#pop-up");
 	let $popUp_closeBtn = document.querySelector(".pop-up-content-close");
 	let $popUp_resetBtn = document.querySelector('#pop-up-reset-btn');
@@ -197,6 +202,7 @@ const Display = (() => {
 		hidePopUp();
 		resetTheGame();
 	}
+	/** end of pop-up window******************/
 
 	function hidePopUp() {
 		$popUp.style.display = "none";
@@ -244,6 +250,7 @@ const Display = (() => {
 			});
 
 			if(msg.status === 'win') {
+				highlightWinningCells(msg.winningCells);
 				showWiningMessage($msg, msg);
 			}
 			else if(msg.status === 'tie') {
@@ -251,6 +258,15 @@ const Display = (() => {
 			}
 		}
 
+	}
+
+	function highlightWinningCells(cell_indexes) {
+		document.querySelectorAll('.cell').forEach((cell) => {
+			let index = Number(cell.dataset.index);
+			if (cell_indexes.indexOf(index) !== -1) {
+				if (!cell.classList.contains('winning-cell')) cell.className += ' winning-cell';
+			}
+		})
 	}
 
 	function showWiningMessage(dom, msg) {

@@ -1,27 +1,31 @@
 .screen {
-	text-align: cneter;
+	text-align: center;
 }
 
 .grid {
 	display: grid;
-	grid-template-columns: repeat(3, 102px);
-	width: 312px;
+	grid-template-columns: repeat(3, 1fr);
+	width: 309px;
 	margin: auto;
 	grid-gap: 4px;
 	background-color: black;
 }
 
+.reset-btn {
+	margin-top: 20px;
+}
+
 .cell {
 	box-sizing: border-box;
+	background-color: white;
 	width:  100px;
 	height:  100px;
-	background: red;
 	display: inline-block;
 	text-align: center;
 	padding-top: 40px;
 }
-.clicked-cell {
-	background: green;
+.winning-cell {
+	background-color: wheat;
 }
 
 /* Pop up window......................................*/
