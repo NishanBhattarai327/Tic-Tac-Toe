@@ -51,6 +51,10 @@ const GameBoard = (() => {
 		return board;
 	}
 
+	function isBoardEmpty() {
+		return board.every((value) => value !== '');
+	}
+
 	function updateBoard(cell) {
 		let index = Number(cell.index), value = cell.value;
 
@@ -65,7 +69,6 @@ const GameBoard = (() => {
 			[0, 3, 6], [1, 4, 7], [2, 5, 8],
 			[0, 4, 8], [2, 4, 6]
 		];
-		let won = false;
 
 		let sign_indexs = board.reduce((acc, value, index) => {
 			if (value === sign)
@@ -73,6 +76,8 @@ const GameBoard = (() => {
 			return acc;
 		}, []);
 
+
+		let won = false;
 		if (sign_indexs.length >= 3) {
 			wining_index_arr.some((arr) => {
 				won = arr.every((value) => {
@@ -83,7 +88,16 @@ const GameBoard = (() => {
 			});
 		}
 
-		Signal.emit('win-status', {won, sign});
+		let status = '';
+		if(isBoardEmpty()) {
+			status = 'tie';
+		}
+		if(won === true) {
+			status = 'win';
+		}
+
+
+		Signal.emit('display-game-ended-status', { sign, status });
 		return won;
 	}
 
@@ -128,7 +142,6 @@ const Game = (function(){
 	let firstPlayer = Player('X');
 	let secondPlayer = Player('O');
 	Signal.subscribe('cell-clicked', play);
-	Signal.subscribe('win-status', gameOver);
 
 	if(!firstPlayer.hasTurn()) firstPlayer.toggleTurn();
 
@@ -152,13 +165,6 @@ const Game = (function(){
 
 	}
 
-	function gameOver(player) {
-		if(player.won) {
-			console.log(player.sign + ' won the game');
-			Signal.emit('display-won-status', { status: 'won', sign: player.sign });
-		}
-	}
-
 })();
 
 const Display = (() => {
@@ -168,7 +174,24 @@ const Display = (() => {
 
 	Signal.subscribe('display-board', _createGrid);
 	Signal.subscribe('display-cell-clicked', _updateCell);
-	Signal.subscribe('display-won-status', _endTheGame)
+	Signal.subscribe('display-game-ended-status', _endTheGame);
+
+	/*Making message-popup window*/
+	let $popUp = document.querySelector("#pop-up");
+	let $popUp_closeBtn = document.querySelector(".pop-up-content-close");
+
+	// When the user clicks on <span> (x), close the $popUp
+	$popUp_closeBtn.onclick = function() {
+	  $popUp.style.display = "none";
+	  resetTheGame();
+	}
+	// When the user clicks anywhere outside of the $popUp, close it
+	window.onclick = function(event) {
+	  if (event.target == $popUp) {
+	    $popUp.style.display = "none";
+	    resetTheGame();
+	  }
+	}
 
 	function _createGrid(board) {
 		let size = board.length;
@@ -200,12 +223,23 @@ const Display = (() => {
 	}	
 
 	function _endTheGame(msg) {
-		if(msg.status === 'won') {
+		if (msg.status !== '') {
+			let $msg = document.querySelector('.message');
+
+			$popUp.style.display = "block";
 			document.querySelectorAll('.cell').forEach((cell) => {
 				cell.removeEventListener('click', _clickEvent);
 			});
 			showResetButton();
+
+			if(msg.status === 'win') {
+				showWiningMessage($msg, msg);
+			}
+			else if(msg.status === 'tie') {
+				showTieMessage($msg, msg);
+			}
 		}
+
 	}
 
 	function showResetButton() {
@@ -214,11 +248,20 @@ const Display = (() => {
 		$btnReset.addEventListener('click', resetTheGame);
 	}
 
-	function resetTheGame(event) {
+	function showWiningMessage(dom, msg) {
+		dom.innerHTML = `GAME IS WON By <br> <strong>${msg.sign}</strong>`;
+	}
+
+	function showTieMessage(dom, msg) {
+		dom.innerHTML = 'NO ONE IS WINNER';
+	}	
+
+	function resetTheGame($resetBtn = undefined) {
 		removeAllChild($grid);
 		bool_grid_added = false;
 		render();
-		event.target.style.display = 'none';
+		if ($resetBtn !== undefined)
+			$resetBtn.style.display = 'none';
 	}
 
 	function removeAllChild(parent) {
@@ -240,3 +283,4 @@ const Display = (() => {
 })();
 
 Display.render();
+
