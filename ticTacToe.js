@@ -78,7 +78,7 @@ const GameBoard = (() => {
 
 
 		let won = false;
-		let winingCells;
+		let winningCells;
 		if (sign_indexs.length >= 3) {
 			wining_index_arr.some((arr) => {
 				won = arr.every((value) => {
@@ -251,7 +251,7 @@ const Display = (() => {
 
 			if(msg.status === 'win') {
 				highlightWinningCells(msg.winningCells);
-				showWiningMessage($msg, msg);
+				showWinningMessage($msg, msg);
 			}
 			else if(msg.status === 'tie') {
 				showTieMessage($msg, msg);
@@ -269,7 +269,7 @@ const Display = (() => {
 		})
 	}
 
-	function showWiningMessage(dom, msg) {
+	function showWinningMessage(dom, msg) {
 		dom.innerHTML = `GAME IS WON By <br> <strong>${msg.sign}</strong>`;
 	}
 
