@@ -63,7 +63,7 @@ const GameBoard = (() => {
 		}
 	}
 
-	function checkForWin(sign) {
+	function checkForWin(player) {
 		const wining_index_arr = [
 			[0, 1, 2], [3, 4, 5], [6, 7, 8],
 			[0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -71,7 +71,7 @@ const GameBoard = (() => {
 		];
 
 		let sign_indexs = board.reduce((acc, value, index) => {
-			if (value === sign)
+			if (value === player.getSign())
 				acc.push(index);
 			return acc;
 		}, []);
@@ -102,7 +102,7 @@ const GameBoard = (() => {
 		}
 
 
-		Signal.emit('display-game-ended-status', { sign, status, winningCells });
+		Signal.emit('display-game-ended-status', { player, status, winningCells });
 		return won;
 	}
 
@@ -144,30 +144,38 @@ const Player = function(sign) {
 };
 
 const Game = (function(){
-	let firstPlayer = Player('X');
-	let secondPlayer = Player('O');
+	let xPlayer = Player('X');
+	let oPlayer = Player('O');
 	Signal.subscribe('cell-clicked', play);
+	Signal.subscribe('set-player-name', setPlayerInfo);
 
-	if(!firstPlayer.hasTurn()) firstPlayer.toggleTurn();
+	if(!xPlayer.hasTurn()) xPlayer.toggleTurn();
 
 	function play(clickedCell) {
 		let sign;
+		let player;
 		let index = Number(clickedCell.cell.dataset.index);
 
-		if (firstPlayer.hasTurn()) {
-			sign = firstPlayer.getSign();
-			firstPlayer.toggleTurn();
-			secondPlayer.toggleTurn();
+		if (xPlayer.hasTurn()) {
+			sign = xPlayer.getSign();
+			player = Object.create(xPlayer);
+			xPlayer.toggleTurn();
+			oPlayer.toggleTurn();
 		}
-		else if (secondPlayer.hasTurn()) {
-			sign = secondPlayer.getSign();
-			secondPlayer.toggleTurn();
-			firstPlayer.toggleTurn();
+		else if (oPlayer.hasTurn()) {
+			sign = oPlayer.getSign();
+			player = Object.create(oPlayer);
+			oPlayer.toggleTurn();
+			xPlayer.toggleTurn();
 		}
 		Signal.emit('display-cell-clicked', { cell:clickedCell.cell, sign });
 		Signal.emit('update-board', { index, value:sign });
-		Signal.emit('check-for-win', sign);
+		Signal.emit('check-for-win', player);
+	}
 
+	function setPlayerInfo(info) {
+		xPlayer.setName(info.firstPlayerName);
+		oPlayer.setName(info.secondPlayerName);
 	}
 
 })();
@@ -203,6 +211,18 @@ const Display = (() => {
 		resetTheGame();
 	}
 	/** end of pop-up window******************/
+
+	let $displayPlayersName = document.getElementById('players-name');
+	let $displayGame = document.getElementById('game');
+	let $form = document.getElementById('form');
+	$form.style.display = 'block';
+	$displayGame.style.display = 'none';
+	$form.addEventListener('submit', (event) => {
+		event.preventDefault();
+		toggleFormAndGame();
+		let players = setPlayersInfo(event.target);
+		displayPlayersName(players);
+	});
 
 	function hidePopUp() {
 		$popUp.style.display = "none";
@@ -270,12 +290,17 @@ const Display = (() => {
 	}
 
 	function showWinningMessage(dom, msg) {
-		dom.innerHTML = `GAME IS WON By <br> <strong>${msg.sign}</strong>`;
+		let info = msg.player.getName() !== '' ? msg.player.getName() : msg.player.getSign();
+		dom.innerHTML = `GAME IS WON By <br> <strong>${info}</strong>`;
 	}
 
 	function showTieMessage(dom, msg) {
 		dom.innerHTML = 'NO ONE IS WINNER';
 	}	
+
+	function showEditButton() {
+
+	}
 
 	function resetTheGame() {
 		removeAllChild($grid);
@@ -287,6 +312,41 @@ const Display = (() => {
 		while (parent.firstChild) {
 			parent.removeChild(parent.firstChild);
 		}
+	}
+
+	function getPlayersInfo($input) {
+		let firstPlayerName = $input.xPlayerName.value;
+		let secondPlayerName = $input.oPlayerName.value;
+		$input.xPlayerName.value = '';
+		$input.oPlayerName.value = '';
+		return { firstPlayerName, secondPlayerName };
+	}
+
+	function setPlayersInfo($input) {
+		let players = getPlayersInfo($input);
+		Signal.emit('set-player-name', players);
+		return players;
+	}
+
+	function toggleFormAndGame() {
+		if ($form.style.display === 'block') {
+			$displayGame.style.display = 'block';
+			$form.style.display = 'none';
+		}
+		else if ($form.style.display === 'none') {
+			$form.style.display = 'block';
+			$displayGame.style.display = 'none';
+		}
+	}
+
+	function displayPlayersName(players) {
+		$displayPlayersName.innerHTML = 
+		`player-x name is ==> ${players.firstPlayerName} <br>
+		 player-o name is ==> ${players.secondPlayerName} <br>
+		 <button class='edit-players-name' id='edit-players-name'>Edit</button>`;
+		document.getElementById('edit-players-name').addEventListener('click', (event) => {
+			toggleFormAndGame();
+		});
 	}
 
 	function render() {
