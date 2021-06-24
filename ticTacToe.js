@@ -291,11 +291,11 @@ const Display = (() => {
 
 	function showWinningMessage(dom, msg) {
 		let info = msg.player.getName() !== '' ? msg.player.getName() : msg.player.getSign();
-		dom.innerHTML = `GAME IS WON By <br> <strong>${info}</strong>`;
+		dom.innerHTML = `<div class='win-msg'>GAME IS WON By <br> <span class='winner'>${info}</span class='winner'></div>`;
 	}
 
 	function showTieMessage(dom, msg) {
-		dom.innerHTML = 'NO ONE IS WINNER';
+		dom.innerHTML = `<div class='loss-msg'>NO ONE IS WINNER</div>`;
 	}	
 
 	function showEditButton() {
@@ -341,9 +341,10 @@ const Display = (() => {
 
 	function displayPlayersName(players) {
 		$displayPlayersName.innerHTML = 
-		`player-x name is ==> ${players.firstPlayerName} <br>
-		 player-o name is ==> ${players.secondPlayerName} <br>
-		 <button class='edit-players-name' id='edit-players-name'>Edit</button>`;
+		`<span class='player-name'>${players.firstPlayerName}</span> (x)
+				<strong>Vs</strong>
+		<span class='player-name'>${players.secondPlayerName}</span> (o)<br>
+		 <button class='edit-players-name' id='edit-players-name'>Change Name</button>`;
 		document.getElementById('edit-players-name').addEventListener('click', (event) => {
 			toggleFormAndGame();
 		});

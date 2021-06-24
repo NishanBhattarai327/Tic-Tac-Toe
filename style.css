@@ -1,5 +1,6 @@
 .screen {
-	text-align: center;
+  text-align: center;
+  color: #123abc;
 }
 
 .grid {
@@ -22,7 +23,9 @@
 	height:  100px;
 	display: inline-block;
 	text-align: center;
-	padding-top: 40px;
+	padding-top: 30px;
+  font-size: 50px;
+  font-weight: 800;
 }
 .winning-cell {
 	background-color: wheat;
@@ -51,6 +54,8 @@
   width: 50%;
   border-radius: 10px;
   color: #130000;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .pop-up-content-close {
@@ -67,12 +72,32 @@
   cursor: pointer;
 }
 /*************************************************************/
+.winner {
+  color: goldenrod;
+}
+
+.players-name {
+  margin-top: 40px;
+}
 
 #form {
-  display: none;
-  background-color: red;
+  padding: 10px;
+  font-size: 24px;
+  color: #123abc;
+}
+
+input {
+  font-size: 24px;
+  color: #123abc;
+  margin: 20px;
+  padding: 5px;
 }
 
 .Header {
   display: none;
+}
+
+.player-name {
+  color: #123456;
+  font-weight: 600;
 }

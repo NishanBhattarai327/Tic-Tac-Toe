@@ -9,15 +9,22 @@
 <body>
 
 	<div id="screen" class="screen">
+		<div class='Header' id='game'>
+			<h1><i style='color:gold'>Tic</i>-Tac-<i style='color:pink'>Toe</i></h1>
+			<div id="grid" class='grid'></div>
+			<button id='reset-btn' class='reset-btn'>Restart</button>
+		</div>
 
 		<div class='players-info'>
-			<div id="players-name"></div>
+			<div id="players-name" class='players-name'></div>
 			<form action="" id="form">
+				<label for='xPlayerName'>X-Player name</label><br>
 				<input type="text" name="xPlayerName" id="xPlayerName" placeholder="x-player-name" required="">
 				<br>
+				<label for="oPlayerName">O-Player name</label><br>
 				<input type="text" name="oPlayerName" id="oPlayerName" placeholder="o-player-name" required="">
 				<br>
-				<input type="submit">
+				<input type="submit" value="Start">
 			</form>
 		</div>
 
@@ -25,14 +32,8 @@
 			<div class="pop-up-content">
 				<span class="pop-up-content-close">&times;</span>
 				<div class="message"></div>
-				<button id='pop-up-reset-btn' class='reset-btn'>Reset</button>
+				<button id='pop-up-reset-btn' class='reset-btn'>Replay</button>
 			</div>
-		</div>
-
-		<div class='Header' id='game'>
-			<h1>Tic-Tac-Toe</h1>
-			<div id="grid" class='grid'></div>
-			<button id='reset-btn' class='reset-btn'>Reset</button>
 		</div>
 	</div>
 
